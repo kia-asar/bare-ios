@@ -1,0 +1,141 @@
+name: Privacy & IDFA Check
+
+on:
+  pull_request:
+    branches: [main, development]
+  push:
+    branches: [main, development]
+
+jobs:
+  privacy-check:
+    name: Verify No IDFA/ATT Usage
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Clean Xcode derived data and build artifacts
+        run: |
+          echo "Cleaning build artifacts..."
+          rm -rf ~/Library/Developer/Xcode/DerivedData/*
+          find cstudio/ -name "*.xcodeproj" -exec rm -rf {}/project.xcworkspace/xcuserdata \;
+          find cstudio/ -type d -name "build" -exec rm -rf {} + 2>/dev/null || true
+          echo "✅ Build artifacts cleaned"
+
+      - name: Check for AdSupport.framework linkage
+        run: |
+          echo "Checking for AdSupport.framework references..."
+          if grep -r "AdSupport" cstudio/cstudio.xcodeproj/ || \
+             grep -r "AdSupport" cstudio/; then
+            echo "❌ ERROR: AdSupport.framework found in project"
+            echo "This violates our no-IDFA policy"
+            exit 1
+          fi
+          echo "✅ No AdSupport.framework references found"
+
+      - name: Check for AppTrackingTransparency.framework linkage
+        run: |
+          echo "Checking for AppTrackingTransparency.framework references..."
+          if grep -r "AppTrackingTransparency" cstudio/cstudio.xcodeproj/ || \
+             grep -r "AppTrackingTransparency" cstudio/; then
+            echo "❌ ERROR: AppTrackingTransparency.framework found in project"
+            echo "This violates our no-ATT policy"
+            exit 1
+          fi
+          echo "✅ No AppTrackingTransparency.framework references found"
+
+      - name: Check for NSUserTrackingUsageDescription in Info.plist
+        run: |
+          echo "Checking for NSUserTrackingUsageDescription in Info.plist..."
+          # Only check source Info.plist files, exclude build artifacts and DerivedData
+          FOUND=0
+          for file in $(find cstudio/ -name "Info.plist" -not -path "*/build/*" -not -path "*/DerivedData/*" -not -path "*/.build/*"); do
+            echo "Checking $file..."
+            if grep -q "NSUserTrackingUsageDescription" "$file"; then
+              echo "❌ ERROR: NSUserTrackingUsageDescription found in $file"
+              FOUND=1
+            fi
+          done
+          if [ $FOUND -eq 1 ]; then
+            echo "This would trigger ATT prompt, violating our policy"
+            exit 1
+          fi
+          echo "✅ No NSUserTrackingUsageDescription found in source Info.plist files"
+
+      - name: Check for IDFA access in code
+        run: |
+          echo "Checking for IDFA access in Swift code..."
+          if grep -r "identifierForAdvertising" cstudio/ --include="*.swift"; then
+            echo "❌ ERROR: identifierForAdvertising usage found in code"
+            echo "This accesses IDFA, violating our policy"
+            exit 1
+          fi
+          if grep -r "ASIdentifierManager" cstudio/ --include="*.swift"; then
+            echo "❌ ERROR: ASIdentifierManager usage found in code"
+            echo "This accesses IDFA, violating our policy"
+            exit 1
+          fi
+          echo "✅ No IDFA access found in code"
+
+      - name: Verify Privacy Manifest NSPrivacyTracking is false
+        run: |
+          echo "Checking Privacy Manifest settings..."
+          for file in $(find cstudio/ CStudioKit/ -name "PrivacyInfo.xcprivacy"); do
+            echo "Checking $file..."
+            if ! grep -q "<key>NSPrivacyTracking</key>" "$file"; then
+              echo "❌ ERROR: NSPrivacyTracking key missing in $file"
+              exit 1
+            fi
+            # Check that the next non-comment line after NSPrivacyTracking is <false/>
+            if ! grep -A 1 "<key>NSPrivacyTracking</key>" "$file" | grep -q "<false/>"; then
+              echo "❌ ERROR: NSPrivacyTracking must be false in $file"
+              exit 1
+            fi
+            echo "✅ $file has NSPrivacyTracking = false"
+          done
+
+      - name: Check Firebase IDFA Collection Setting
+        run: |
+          echo "Checking Firebase IDFA collection setting..."
+          # Firebase v10+ uses GOOGLE_ANALYTICS_IDFA_COLLECTION_ENABLED flag
+          # This is what Apple actually checks, not the framework name
+          FOUND_SETTING=0
+          for file in $(find cstudio/ -name "Info.plist" -not -path "*/build/*" -not -path "*/DerivedData/*"); do
+            if grep -q "GOOGLE_ANALYTICS_IDFA_COLLECTION_ENABLED" "$file"; then
+              echo "Found GOOGLE_ANALYTICS_IDFA_COLLECTION_ENABLED in $file"
+              # Check if it's set to false
+              if grep -A 1 "GOOGLE_ANALYTICS_IDFA_COLLECTION_ENABLED" "$file" | grep -q "<false/>"; then
+                echo "✅ IDFA collection is disabled (false)"
+                FOUND_SETTING=1
+              else
+                echo "❌ ERROR: GOOGLE_ANALYTICS_IDFA_COLLECTION_ENABLED must be set to false"
+                echo "Current value in $file is not false"
+                exit 1
+              fi
+            fi
+          done
+          
+          if [ $FOUND_SETTING -eq 0 ]; then
+            echo "⚠️  WARNING: GOOGLE_ANALYTICS_IDFA_COLLECTION_ENABLED not found"
+            echo "If using Firebase Analytics, add this to Info.plist:"
+            echo "<key>GOOGLE_ANALYTICS_IDFA_COLLECTION_ENABLED</key>"
+            echo "<false/>"
+          fi
+
+      - name: Summary
+        run: |
+          echo "============================================"
+          echo "✅ Privacy & IDFA Check Passed"
+          echo "============================================"
+          echo "What Apple Actually Checks:"
+          echo "- ✅ No AdSupport.framework linkage"
+          echo "- ✅ No AppTrackingTransparency.framework linkage"
+          echo "- ✅ No NSUserTrackingUsageDescription in Info.plist"
+          echo "- ✅ No IDFA access in code (identifierForAdvertising)"
+          echo "- ✅ NSPrivacyTracking set to false in privacy manifests"
+          echo "- ✅ GOOGLE_ANALYTICS_IDFA_COLLECTION_ENABLED = false (Firebase)"
+          echo "============================================"
+          echo "Note: Firebase v10+ uses a single framework with IDFA"
+          echo "collection controlled by the Info.plist flag above."
+          echo "============================================"

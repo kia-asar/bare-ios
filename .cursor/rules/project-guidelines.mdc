@@ -1,0 +1,70 @@
+---
+description: CStudio iOS Project Guidelines - Main Rules
+globs: ["**/*.swift", "**/*.md"]
+alwaysInclude: true
+---
+
+# CStudio iOS - Project Guidelines
+
+> **Note**: This references the central guidelines in `docs/AI_GUIDELINES.md`
+> Please read that file for complete details. Key rules are highlighted below.
+
+## ⚠️ CRITICAL: DesignTokens (STRICTLY ENFORCED)
+
+**NEVER hardcode UI values - ALWAYS use DesignTokens from CStudioKit**
+
+```swift
+import CStudioKit
+
+// ✅ CORRECT - Will pass code review
+.padding(DesignTokens.Spacing.md)
+.background(DesignTokens.Colors.surfaceLight)
+.cornerRadius(DesignTokens.CornerRadius.md)
+
+// ❌ WRONG - Will be rejected
+.padding(16)
+.background(Color.gray.opacity(0.1))
+.cornerRadius(12)
+```
+
+### Non-Negotiable Rules
+
+1. **NO hardcoded colors** - use `DesignTokens.Colors.*`
+2. **NO hardcoded spacing** - use `DesignTokens.Spacing.*`
+3. **NO hardcoded corner radius** - use `DesignTokens.CornerRadius.*`
+4. Applies to **ALL targets** (main app, extensions, widgets)
+5. Add new tokens to `DesignTokens.swift` if needed
+
+## Quick Reference
+
+### Available Tokens
+
+- **Colors**: backgroundOverlay, surfaceLight, surfaceMedium, borderLight, borderError, interactiveOverlay, primaryGradientStart, shadowLight, shadowBlue
+- **Spacing**: xs(8), sm(12), md(16), lg(20), xl(24), xxl(32), xxxl(40)
+- **CornerRadius**: sm(8), md(12), lg(16), xl(20)
+
+### Code Quality
+
+- **DRY**: Extract duplicated code into reusable components
+- **Simple**: Choose simplest solution that works
+- **Swift 6**: Use `async/await`, `@MainActor`, strict concurrency
+- **Config**: Always use `AppConfig` - never hardcode identifiers
+
+### Architecture
+
+- Multi-target: CStudioKit shared across all targets
+- MVVM: Use `@Observable` ViewModels for complex flows
+- DI: Protocol-based injection via `DependencyContainer`
+
+### Git Commits
+
+- Imperative: "Add feature" not "Added feature"
+- Never mention AI/Claude/LLM
+- Atomic commits with clear why
+
+## Full Documentation
+
+For complete guidelines, see:
+- **Central AI Guide**: `docs/AI_GUIDELINES.md`
+- **Architecture**: `docs/ARCHITECTURE.md`
+- **Contributing**: `docs/CONTRIBUTING.md`

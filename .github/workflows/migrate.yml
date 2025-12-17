@@ -1,0 +1,66 @@
+name: Database Migrations
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'migrations/**'
+  workflow_dispatch: # Allow manual trigger
+
+jobs:
+  migrate:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install PostgreSQL client
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y postgresql-client
+
+      - name: Validate DATABASE_URL secret exists
+        env:
+          DATABASE_URL: ${{ secrets.SUPABASE_POOLER_DB_URL }}
+        run: |
+          if [ -z "$DATABASE_URL" ]; then
+            echo "❌ Error: SUPABASE_POOLER_DB_URL secret not configured"
+            echo "Add it in: Settings → Secrets and variables → Actions"
+            exit 1
+          fi
+
+      - name: Run migrations
+        env:
+          DATABASE_URL: ${{ secrets.SUPABASE_POOLER_DB_URL }}
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+          
+          # Use DATABASE_URL as-is (add sslmode=require to your secret if needed)
+          EFFECTIVE_DATABASE_URL="$DATABASE_URL"
+          
+          # Check if migrations directory exists
+          if [ ! -d "migrations" ]; then
+            echo "❌ No migrations directory found"
+            exit 1
+          fi
+          
+          # Run migrations in order
+          migration_count=0
+          for file in migrations/*.sql; do
+            if [ -f "$file" ]; then
+              echo "📝 Applying $file..."
+              psql "$EFFECTIVE_DATABASE_URL" -v "ON_ERROR_STOP=1" -f "$file"
+              migration_count=$((migration_count + 1))
+            fi
+          done
+          
+          if [ $migration_count -eq 0 ]; then
+            echo "⚠️  No migration files found"
+            exit 1
+          fi
+          
+          echo "✅ Successfully applied $migration_count migration(s)"
+
+

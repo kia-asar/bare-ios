@@ -1,0 +1,27 @@
+// Prod.xcconfig.template
+// Copy this file to Prod.xcconfig and fill in your actual values
+
+// Bundle Identifier
+PRODUCT_BUNDLE_IDENTIFIER = social.curo.cstudio
+
+// Swift Compilation Conditions
+SWIFT_ACTIVE_COMPILATION_CONDITIONS = PROD
+
+// PostHog Configuration
+// Replace with your actual PostHog Prod project API key
+POSTHOG_API_KEY = phc_YOUR_PROD_KEY_HERE
+POSTHOG_HOST = https:/$()/us.i.posthog.com
+
+// Display Name (shows in springboard)
+PRODUCT_NAME = cstudio
+
+// App Icon
+ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon
+
+// Optimization Level
+SWIFT_OPTIMIZATION_LEVEL = -O
+GCC_OPTIMIZATION_LEVEL = s
+
+// Firebase Analytics IDFA Collection
+GOOGLE_ANALYTICS_IDFA_COLLECTION_ENABLED = NO
+

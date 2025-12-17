@@ -1,0 +1,410 @@
+{
+  "name": "Content Ingestion Workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "ingestion-webhook",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-trigger",
+      "name": "Webhook Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1.1,
+      "position": [250, 300],
+      "webhookId": "ingestion-webhook"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { \"status\": \"received\" } }}"
+      },
+      "id": "webhook-response",
+      "name": "Webhook Response",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [250, 520]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $('Supabase Config').item.json.supabaseUrl }}/rest/v1/rpc/studio_claim_ingestion_job",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "supabaseApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ { \"worker_id\": $('Supabase Config').item.json.workerId } }}",
+        "options": {}
+      },
+      "id": "claim-job",
+      "name": "Claim Job",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [650, 300],
+      "credentials": {
+        "supabaseApi": {
+          "id": "YOUR_SUPABASE_CREDENTIAL_ID",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "keepOnlySet": false,
+        "values": {
+          "string": [
+            {
+              "name": "supabaseUrl",
+              "value": "https://REPLACE_ME.supabase.co"
+            },
+            {
+              "name": "workerId",
+              "value": "n8n-worker-1"
+            }
+          ]
+        }
+      },
+      "id": "supabase-config",
+      "name": "Supabase Config",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 2,
+      "position": [450, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first();\nconst job = item.json;\nreturn [{\n  json: {\n    job,\n    hasJob: job !== null && job.id !== undefined\n  }\n}];"
+      },
+      "id": "format-job-response",
+      "name": "Format Job Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [850, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{ $json.hasJob }}",
+              "value2": true
+            }
+          ]
+        }
+      },
+      "id": "check-job-claimed",
+      "name": "Job Claimed?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [1050, 300]
+    },
+    {
+      "parameters": {
+        "url": "={{ $('Supabase Config').item.json.supabaseUrl }}/rest/v1/studio_posts?id=eq.{{ $json.job.post_id }}&select=*",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "supabaseApi",
+        "options": {
+          "timeout": 10000
+        }
+      },
+      "id": "fetch-post",
+      "name": "Fetch Post Data",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1250, 200],
+      "credentials": {
+        "supabaseApi": {
+          "id": "YOUR_SUPABASE_CREDENTIAL_ID",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "={{ $json[0].original_url }}",
+        "options": {
+          "timeout": 30000,
+          "redirect": {
+            "followRedirects": true,
+            "maxRedirects": 5
+          },
+          "allowUnauthorizedCerts": false
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "User-Agent",
+              "value": "Mozilla/5.0 (compatible; ContentIngestion/1.0)"
+            },
+            {
+              "name": "Accept",
+              "value": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
+            }
+          ]
+        }
+      },
+      "id": "fetch-content",
+      "name": "Fetch URL Content",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1450, 200]
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first();\nconst html = item.json.data || item.json.body || '';\nconst postItems = $items('Fetch Post Data', 0, 0);\nconst postData = postItems[0].json[0];\nconst formatJobItems = $items('Format Job Response', 0, 0);\nconst job = formatJobItems[0].json.job;\n\nconst extractMetaTag = (markup, property) => {\n  const regex = new RegExp(`<meta[^>]*${property}=[\\\\\"']([^\\\\\"']+)[\\\\\"'][^>]*>`, 'i');\n  const match = markup.match(regex);\n  return match ? match[1] : null;\n};\n\nconst extractTitle = (markup) => {\n  const titleMatch = markup.match(/<title[^>]*>([^<]+)<\\/title>/i);\n  if (titleMatch) return titleMatch[1].trim();\n  const ogTitle = extractMetaTag(markup, 'property=\\\\\"og:title\\\\\"') || extractMetaTag(markup, 'name=\\\\\"og:title\\\\\"');\n  return ogTitle || null;\n};\n\nconst extractDescription = (markup) => {\n  const metaDesc = extractMetaTag(markup, 'name=\\\\\"description\\\\\"');\n  if (metaDesc) return metaDesc;\n  const ogDesc = extractMetaTag(markup, 'property=\\\\\"og:description\\\\\"') || extractMetaTag(markup, 'name=\\\\\"og:description\\\\\"');\n  return ogDesc || null;\n};\n\nconst extractImage = (markup) => {\n  const ogImage = extractMetaTag(markup, 'property=\\\\\"og:image\\\\\"') || extractMetaTag(markup, 'name=\\\\\"og:image\\\\\"');\n  if (ogImage) {\n    try {\n      const url = new URL(ogImage, postData.original_url);\n      return url.href;\n    } catch {\n      return ogImage;\n    }\n  }\n  const imgMatch = markup.match(/<img[^>]*src=[\\\\\"']([^\\\\\"']+)[\\\\\"'][^>]*>/i);\n  if (imgMatch) {\n    try {\n      const url = new URL(imgMatch[1], postData.original_url);\n      return url.href;\n    } catch {\n      return imgMatch[1];\n    }\n  }\n  return null;\n};\n\nconst extractSiteName = (markup) => extractMetaTag(markup, 'property=\\\\\"og:site_name\\\\\"') || extractMetaTag(markup, 'name=\\\\\"og:site_name\\\\\"');\nconst extractAuthor = (markup) => extractMetaTag(markup, 'property=\\\\\"og:article:author\\\\\"') || extractMetaTag(markup, 'name=\\\\\"author\\\\\"');\nconst decodeHtml = (text) => text ? text.replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '\"').replace(/&#039;/g, \"'\") : text;\n\nconst payload = {\n  title: decodeHtml(extractTitle(html)),\n  description: decodeHtml(extractDescription(html)),\n  thumbnail_url: extractImage(html),\n  site_name: extractSiteName(html),\n  author: extractAuthor(html),\n  extracted_at: new Date().toISOString(),\n  original_url: postData.original_url,\n  canonical_url: postData.canonical_url\n};\n\nreturn [{ json: { job, post: postData, payload, html: html.substring(0, 10000) } }];"
+      },
+      "id": "extract-metadata",
+      "name": "Extract Metadata",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1650, 200]
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first();\nconst metadata = item.json;\nlet thumbnailUrl = metadata.payload.thumbnail_url;\nif (thumbnailUrl) {\n  try {\n    const url = new URL(thumbnailUrl);\n    if (url.protocol !== 'http:' && url.protocol !== 'https:') {\n      thumbnailUrl = null;\n    }\n  } catch {\n    thumbnailUrl = null;\n  }\n}\nreturn [{ json: { job: metadata.job, post: metadata.post, payload: metadata.payload, thumbnail_url: thumbnailUrl } }];"
+      },
+      "id": "process-thumbnail",
+      "name": "Process Thumbnail",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1850, 200]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{ $json.payload.title }}",
+              "operation": "notEmpty"
+            }
+          ]
+        }
+      },
+      "id": "check-success",
+      "name": "Processing Success?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [2050, 200]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $('Supabase Config').item.json.supabaseUrl }}/rest/v1/rpc/studio_complete_ingestion_job",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "supabaseApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ { \"job_id\": $json.job.id, \"new_payload\": $json.payload, \"new_thumbnail_url\": $json.thumbnail_url } }}",
+        "options": {}
+      },
+      "id": "complete-job",
+      "name": "Complete Job",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [2250, 80],
+      "credentials": {
+        "supabaseApi": {
+          "id": "YOUR_SUPABASE_CREDENTIAL_ID",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $('Supabase Config').item.json.supabaseUrl }}/rest/v1/rpc/studio_retry_ingestion_job",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "supabaseApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ { \"job_id\": $json.job.id, \"error_message\": ($json.error?.message || 'Processing failed').substring(0, 500) } }}",
+        "options": {}
+      },
+      "id": "retry-job",
+      "name": "Retry Job",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [2250, 320],
+      "credentials": {
+        "supabaseApi": {
+          "id": "YOUR_SUPABASE_CREDENTIAL_ID",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "return [{ json: { message: 'No jobs available to process', timestamp: new Date().toISOString() } }];"
+      },
+      "id": "no-job",
+      "name": "No Job Available",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1250, 420]
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first();\nconst error = item.json.error || $execution.lastNodeExecuted?.error || { message: 'Unknown error' };\nconst formatJobItems = $items('Format Job Response', 0, 0);\nif (!formatJobItems || !formatJobItems[0]) {\n  throw new Error('Cannot access claimed job for error handling');\n}\nconst job = formatJobItems[0].json.job;\nreturn [{ json: { error: { message: error.message || JSON.stringify(error), stack: error.stack, node: $execution.lastNodeExecuted?.name || 'unknown', timestamp: new Date().toISOString() }, job } }];"
+      },
+      "id": "error-handler",
+      "name": "Error Handler",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [2050, 360],
+      "onError": "continueErrorOutput"
+    }
+  ],
+  "connections": {
+    "Webhook Trigger": {
+      "main": [
+        [
+          {
+            "node": "Webhook Response",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Supabase Config",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Supabase Config": {
+      "main": [
+        [
+          {
+            "node": "Claim Job",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Claim Job": {
+      "main": [
+        [
+          {
+            "node": "Format Job Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Job Response": {
+      "main": [
+        [
+          {
+            "node": "Job Claimed?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Job Claimed?": {
+      "main": [
+        [
+          {
+            "node": "Fetch Post Data",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "No Job Available",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Post Data": {
+      "main": [
+        [
+          {
+            "node": "Fetch URL Content",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch URL Content": {
+      "main": [
+        [
+          {
+            "node": "Extract Metadata",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Metadata": {
+      "main": [
+        [
+          {
+            "node": "Process Thumbnail",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Process Thumbnail": {
+      "main": [
+        [
+          {
+            "node": "Processing Success?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Processing Success?": {
+      "main": [
+        [
+          {
+            "node": "Complete Job",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Error Handler",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Error Handler": {
+      "main": [
+        [
+          {
+            "node": "Retry Job",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": true
+  },
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 1,
+  "updatedAt": "2025-01-13T00:00:00.000Z",
+  "versionId": "3"
+}

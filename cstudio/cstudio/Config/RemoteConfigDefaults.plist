@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<!-- Kill Switches -->
+	<key>minimum_required_version</key>
+	<string></string>
+	<key>blocked_versions</key>
+	<array/>
+	<key>soft_kill_switch_enabled</key>
+	<false/>
+	<key>soft_kill_switch_message</key>
+	<string>A new version of CStudio is available. Please update for the best experience.</string>
+	<key>hard_kill_switch_enabled</key>
+	<false/>
+	<key>hard_kill_switch_message</key>
+	<string>This version of CStudio is no longer supported. Please update to continue using the app.</string>
+	<key>emergency_kill_switch_enabled</key>
+	<false/>
+	<key>emergency_kill_switch_message</key>
+	<string>We're experiencing technical difficulties. Please try again later.</string>
+	<key>maintenance_mode</key>
+	<false/>
+	<key>maintenance_message</key>
+	<string>Scheduled maintenance in progress. Please check back soon.</string>
+	<key>maintenance_end_time</key>
+	<string></string>
+</dict>
+</plist>
