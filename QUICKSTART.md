@@ -1,22 +1,22 @@
-# Quick Start - Fix "No such module 'CStudioKit'" Error
+# Quick Start - Fix "No such module 'BareKit'" Error
 
-## Step 1: Add CStudioKit Package to Xcode
+## Step 1: Add BareKit Package to Xcode
 
 1. Open the project:
    ```bash
-   open /Users/kiarash/kialabs/cstudio-ios/cstudio/cstudio.xcodeproj
+   open /Users/kiarash/kialabs/bare-ios/bare/bare.xcodeproj
    ```
 
 2. In Xcode:
-   - Select the **project** (top "cstudio" with blue icon) in the navigator
+   - Select the **project** (top "bare" with blue icon) in the navigator
    - Go to the **"Package Dependencies"** tab in the main editor
    - Click the **"+"** button at the bottom left
    - Choose **"Add Local..."**
-   - Navigate to and select: `/Users/kiarash/kialabs/cstudio-ios/CStudioKit`
+   - Navigate to and select: `/Users/kiarash/kialabs/bare-ios/BareKit`
    - Click **"Add Package"**
 
 3. In the dialog that appears:
-   - Check **both** `cstudio` and `ShareExtension` targets
+   - Check **both** `bare` and `ShareExtension` targets
    - Click **"Add Package"**
 
 ## Step 2: Configure Secrets.plist
@@ -25,7 +25,7 @@ The `Secrets.plist` file has been created from the template. Edit it with your S
 
 1. Open in Xcode or any text editor:
    ```bash
-   open cstudio/cstudio/Resources/Secrets.plist
+   open bare/bare/Resources/Secrets.plist
    ```
 
 2. Replace the placeholder values:
@@ -49,27 +49,27 @@ The `Secrets.plist` file has been created from the template. Edit it with your S
 ## Troubleshooting
 
 ### "Unable to find module dependency: 'Supabase'"
-This is normal! When you add CStudioKit, Xcode will automatically fetch Supabase Swift SDK as a dependency.
+This is normal! When you add BareKit, Xcode will automatically fetch Supabase Swift SDK as a dependency.
 - Go to: **File → Packages → Resolve Package Versions**
 - Wait for Xcode to download and resolve all dependencies
 - This may take 1-2 minutes on first run
 
 ### "Secrets.plist file not found"
-- Make sure you created `Secrets.plist` in `cstudio/cstudio/Resources/`
+- Make sure you created `Secrets.plist` in `bare/bare/Resources/`
 - In Xcode, verify it appears in the project navigator
-- If not, drag and drop it into the project (make sure to add to `cstudio` target)
+- If not, drag and drop it into the project (make sure to add to `bare` target)
 
 ### "Invalid Supabase URL"
 - Check that your URL starts with `https://`
 - Verify it ends with `.supabase.co`
 - No trailing slash
 
-### CStudioKit still not found
+### BareKit still not found
 - Clean build folder: **Cmd+Shift+K**
 - Close and reopen Xcode
-- Verify `CStudioKit` appears under "Package Dependencies" in project navigator
+- Verify `BareKit` appears under "Package Dependencies" in project navigator
 
-### Build errors in CStudioKit
+### Build errors in BareKit
 - The package requires Supabase Swift SDK (declared in `Package.swift`)
 - Xcode should automatically fetch it when you add the package
 - If not, try: **File → Packages → Resolve Package Versions**

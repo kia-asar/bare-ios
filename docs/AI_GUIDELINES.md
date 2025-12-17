@@ -4,10 +4,10 @@
 
 ## CRITICAL: UI Design System
 
-**ALWAYS use DesignTokens from CStudioKit - NEVER hardcode UI values**
+**ALWAYS use DesignTokens from BareKit - NEVER hardcode UI values**
 
 ```swift
-import CStudioKit
+import BareKit
 
 // ✅ CORRECT
 .padding(DesignTokens.Spacing.md)
@@ -26,8 +26,8 @@ import CStudioKit
 - **NEVER** hardcode spacing/padding values - use `DesignTokens.Spacing.*`
 - **NEVER** hardcode corner radius - use `DesignTokens.CornerRadius.*`
 - Applies to **ALL targets**: main app, Share Extension, widgets, notifications, etc.
-- DesignTokens is in CStudioKit - accessible everywhere
-- If you need a new value, add it to `CStudioKit/Sources/CStudioKit/UI/DesignTokens.swift` first
+- DesignTokens is in BareKit - accessible everywhere
+- If you need a new value, add it to `BareKit/Sources/BareKit/UI/DesignTokens.swift` first
 
 ### Available Tokens
 
@@ -122,7 +122,7 @@ func onCallback(data: NSData) {
 
 ### Multi-Target Support
 
-- Main app, Share Extension, widgets, notifications all share CStudioKit
+- Main app, Share Extension, widgets, notifications all share BareKit
 - Keep UI consistent across all targets using DesignTokens
 - Use protocol-based dependency injection
 

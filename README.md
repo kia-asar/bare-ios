@@ -1,13 +1,13 @@
-# cstudio
+# bare
 
 iOS app for saving and organizing content with AI-powered analysis.
 
 ## Quick Start
 
-**First time setup?** → See [QUICKSTART.md](QUICKSTART.md) to add CStudioKit and fix build errors.
+**First time setup?** → See [QUICKSTART.md](QUICKSTART.md) to add BareKit and fix build errors.
 
 1. **Setup**: Follow [SETUP.md](SETUP.md) for complete configuration
-2. **Build**: Open `cstudio.xcodeproj` in Xcode 16+
+2. **Build**: Open `bare.xcodeproj` in Xcode 16+
 3. **Run**: Build and run on iOS 26+ device or simulator
 
 ## Features
@@ -32,7 +32,7 @@ iOS app for saving and organizing content with AI-powered analysis.
 - **iOS**: Swift 6.0, SwiftUI, iOS 26 (main) / iOS 18 (extension)
 - **Backend**: Supabase (PostgreSQL, Auth, Storage, Edge Functions)
 - **Ingestion**: n8n workflows triggered by database webhooks
-- **Code Sharing**: CStudioKit Swift package for app+extension
+- **Code Sharing**: BareKit Swift package for app+extension
 
 ## Key Technologies
 

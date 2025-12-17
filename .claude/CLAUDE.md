@@ -1,4 +1,4 @@
-# CStudio iOS Project Guidelines
+# Bare iOS Project Guidelines
 
 > **Central AI Guidelines**: See `docs/AI_GUIDELINES.md` for complete, cross-platform AI tool guidelines.
 > This file contains Claude Code-specific context and references.
@@ -53,10 +53,10 @@ This is an iOS application project built with Xcode, with potential for future e
 
 ### UI Design System (MANDATORY)
 
-**CRITICAL: Always use DesignTokens from CStudioKit for ALL UI values**
+**CRITICAL: Always use DesignTokens from BareKit for ALL UI values**
 
 ```swift
-import CStudioKit
+import BareKit
 
 // ✅ CORRECT - Use DesignTokens
 .padding(DesignTokens.Spacing.md)
@@ -74,7 +74,7 @@ import CStudioKit
 - **NEVER** hardcode spacing/padding values - use `DesignTokens.Spacing.*`
 - **NEVER** hardcode corner radius - use `DesignTokens.CornerRadius.*`
 - This applies to **ALL targets**: main app, Share Extension, widgets, notifications, etc.
-- DesignTokens is in CStudioKit, accessible everywhere
+- DesignTokens is in BareKit, accessible everywhere
 - If you need a new value, add it to `DesignTokens.swift` first
 
 **Available Tokens:**

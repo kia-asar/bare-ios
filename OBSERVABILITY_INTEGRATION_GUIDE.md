@@ -1,18 +1,18 @@
 # Observability Integration Guide
 
-This document provides step-by-step instructions to complete the observability integration for CStudio iOS.
+This document provides step-by-step instructions to complete the observability integration for Bare iOS.
 
 ## What Has Been Implemented
 
 ### ✅ Core Infrastructure (Complete)
 
-1. **Protocols & Facades** (`CStudioKit/Core/Observability/`)
+1. **Protocols & Facades** (`BareKit/Core/Observability/`)
    - `AnalyticsService`, `FeatureFlagService`, `CrashReportingService`, `PerformanceTraceService`
    - `Observability` unified facade
    - `AppLogger` with categories and signposts
    - `AppGroupEventBuffer` for Share Extension analytics
 
-2. **Service Implementations** (`cstudio/Services/Observability/`)
+2. **Service Implementations** (`bare/Services/Observability/`)
    - `FirebaseAnalyticsService`
    - `FirebaseRemoteConfigService`
    - `FirebaseCrashReportingService`
@@ -29,11 +29,11 @@ This document provides step-by-step instructions to complete the observability i
 
 4. **App Integration**
    - Updated `Dependencies.swift` with `Observability`
-   - Updated `cstudioApp.swift` initialization flow
+   - Updated `bareApp.swift` initialization flow
    - Share Extension analytics buffering
 
 5. **Privacy & Compliance**
-   - `PrivacyInfo.xcprivacy` for app and CStudioKit
+   - `PrivacyInfo.xcprivacy` for app and BareKit
    - CI workflow for IDFA/ATT prevention
    - No-op implementations for testing
 
@@ -49,11 +49,11 @@ This document provides step-by-step instructions to complete the observability i
 The Firebase service implementations have placeholder comments where SDK calls will go. You need to:
 
 1. **Add Firebase Package**:
-   - Open `cstudio/cstudio.xcodeproj` in Xcode
+   - Open `bare/bare.xcodeproj` in Xcode
    - File → Add Package Dependencies
    - URL: `https://github.com/firebase/firebase-ios-sdk`
    - Select version: Latest (11.x)
-   - Add to **app target only** (NOT CStudioKit, NOT ShareExtension)
+   - Add to **app target only** (NOT BareKit, NOT ShareExtension)
 
 2. **Select Products**:
    - `FirebaseAnalytics` (or `FirebaseAnalyticsWithoutAdIdSupport` - recommended for no-IDFA policy)
@@ -64,7 +64,7 @@ The Firebase service implementations have placeholder comments where SDK calls w
 3. **Uncomment Firebase SDK Calls**:
    After adding the package, search for commented Firebase code:
    ```bash
-   grep -r "// Firebase" cstudio/cstudio/Services/Observability/
+   grep -r "// Firebase" bare/bare/Services/Observability/
    ```
 
    Uncomment the imports and SDK calls in:
@@ -89,18 +89,18 @@ The Firebase service implementations have placeholder comments where SDK calls w
 
 1. **Create Firebase Projects**:
    - Go to [Firebase Console](https://console.firebase.google.com/)
-   - Create `cstudio-dev` (for Debug builds)
-   - Create `cstudio-prod` (for Release builds)
+   - Create `bare-dev` (for Debug builds)
+   - Create `bare-prod` (for Release builds)
 
 2. **Download Configuration Files**:
    - For each project, add an iOS app
-   - Bundle ID: `social.curo.cstudio`
+   - Bundle ID: `co.bareapp.bare`
    - Download `GoogleService-Info.plist`
 
 3. **Place Configuration Files**:
    ```
-   cstudio/cstudio/Config/Firebase/Debug/GoogleService-Info.plist
-   cstudio/cstudio/Config/Firebase/Release/GoogleService-Info.plist
+   bare/bare/Config/Firebase/Debug/GoogleService-Info.plist
+   bare/bare/Config/Firebase/Release/GoogleService-Info.plist
    ```
 
 4. **Enable Firebase Services**:
@@ -119,7 +119,7 @@ The Firebase service implementations have placeholder comments where SDK calls w
 
 1. **Copy Template**:
    ```bash
-   cp cstudio/cstudio/Config/Secrets.plist.template cstudio/cstudio/Config/Secrets.plist
+   cp bare/bare/Config/Secrets.plist.template bare/bare/Config/Secrets.plist
    ```
 
 2. **Get PostHog Credentials**:
@@ -163,10 +163,10 @@ In Xcode, app target → Build Phases → + New Run Script Phase:
 Ensure these files are added to the appropriate targets:
 
 1. **App Target**:
-   - `cstudio/cstudio/PrivacyInfo.xcprivacy` → app target
+   - `bare/bare/PrivacyInfo.xcprivacy` → app target
 
-2. **CStudioKit**:
-   - `CStudioKit/PrivacyInfo.xcprivacy` → CStudioKit framework
+2. **BareKit**:
+   - `BareKit/PrivacyInfo.xcprivacy` → BareKit framework
 
 3. **Verify in Build Phases**:
    - Both files should appear in "Copy Bundle Resources" for their respective targets
@@ -189,10 +189,10 @@ In Xcode, configure GoogleService-Info.plist selection by build configuration:
 1. **Build the App**:
    ```bash
    # Debug build
-   xcodebuild -scheme cstudio -configuration Debug build
+   xcodebuild -scheme bare -configuration Debug build
 
    # Release build
-   xcodebuild -scheme cstudio -configuration Release build
+   xcodebuild -scheme bare -configuration Release build
    ```
 
 2. **Verify Initialization**:
@@ -267,7 +267,7 @@ In Xcode, configure GoogleService-Info.plist selection by build configuration:
 - Check PostHog dashboard may have 1-2 minute delay
 
 ### Share Extension Events Not Relaying
-- Check App Group is configured: `group.social.curo.cstudio`
+- Check App Group is configured: `group.co.bareapp.bare`
 - Verify buffer file exists in App Group container
 - Check Console.app for "Drained X buffered events" log on app launch
 

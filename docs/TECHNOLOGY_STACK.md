@@ -37,7 +37,7 @@
 - `supabase-swift` v2.0+ - Supabase client SDK
 - `firebase-ios-sdk` - Firebase platform (Analytics, RemoteConfig, Crashlytics, Performance)
 - `posthog-ios` - PostHog product analytics SDK
-- `CStudioKit` (local) - Shared code between app and extension
+- `BareKit` (local) - Shared code between app and extension
 - `KeychainAccess` - Secure keychain storage (shared app/extension)
 - Observation framework (`@Observable`) - Auth state propagation
 

@@ -1,6 +1,6 @@
 # Observability
 
-This document outlines the observability stack, architecture, and governing principles for analytics, feature flags, crash reporting, and performance monitoring in CStudio.
+This document outlines the observability stack, architecture, and governing principles for analytics, feature flags, crash reporting, and performance monitoring in Bare.
 
 ## Table of Contents
 
@@ -85,7 +85,7 @@ This document outlines the observability stack, architecture, and governing prin
               Firebase Analytics + PostHog
 ```
 
-### Protocols in CStudioKit
+### Protocols in BareKit
 
 All observability services are protocol-driven for testability:
 
@@ -244,7 +244,7 @@ await observability.performance.recordNetworkRequest(
 
 ### No-IDFA Policy
 
-**Strict policy**: CStudio does **NOT** use IDFA (Identifier for Advertisers) or ATT (App Tracking Transparency).
+**Strict policy**: Bare does **NOT** use IDFA (Identifier for Advertisers) or ATT (App Tracking Transparency).
 
 **What Apple Actually Checks:**
 - ❌ Never link `AdSupport.framework` or `AppTrackingTransparency.framework`
@@ -290,7 +290,7 @@ If expanding to EU, implement explicit consent:
 
 ### Privacy Manifest
 
-Both app target and CStudioKit include `PrivacyInfo.xcprivacy`:
+Both app target and BareKit include `PrivacyInfo.xcprivacy`:
 
 - `NSPrivacyTracking`: `false`
 - `NSPrivacyCollectedDataTypes`: Analytics, crash, performance (non-linked, non-tracking)
@@ -381,7 +381,7 @@ Before releasing, verify:
 
 ### Share Extension Events Not Relayed
 
-1. **Check App Group**: Verify `group.social.curo.cstudio` configured
+1. **Check App Group**: Verify `group.co.bareapp.bare` configured
 2. **Check buffer file**: Inspect `AppGroup.containerURL/analytics_event_buffer.jsonl`
 3. **Check relay logic**: Events drained on app launch, not immediately
 

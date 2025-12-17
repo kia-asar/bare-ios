@@ -10,7 +10,7 @@ Supabase project (see SETUP.md)
 
 Follow [SETUP.md](../SETUP.md) for complete configuration including:
 - Supabase credentials and database setup
-- CStudioKit package integration
+- BareKit package integration
 - Entitlements configuration (Keychain, App Groups, URL scheme)
 
 ## Plan Before Implementing
@@ -29,10 +29,10 @@ Follow [SETUP.md](../SETUP.md) for complete configuration including:
 
 ### UI & Design System
 
-**Use DesignTokens for all UI values** (import from `CStudioKit`):
+**Use DesignTokens for all UI values** (import from `BareKit`):
 
 ```swift
-import CStudioKit
+import BareKit
 
 // ✅ Correct
 .padding(DesignTokens.Spacing.md)
@@ -51,10 +51,10 @@ import CStudioKit
 - **Never hardcode** corner radius (e.g., `.cornerRadius(12)`)
 - **Applies to ALL targets**: main app, Share Extension, widgets, notifications, Watch app, etc.
 - Use semantic token names that describe purpose, not appearance
-- Add new tokens to `DesignTokens.swift` (in CStudioKit) when needed, don't create one-off values
+- Add new tokens to `DesignTokens.swift` (in BareKit) when needed, don't create one-off values
 
-**Why CStudioKit?**
-- DesignTokens lives in CStudioKit so it's accessible to all targets
+**Why BareKit?**
+- DesignTokens lives in BareKit so it's accessible to all targets
 - Ensures consistent UI across main app, extensions, and widgets
 - Single source of truth for design updates
 
@@ -144,7 +144,7 @@ See [OBSERVABILITY.md](./OBSERVABILITY.md) for full guidelines.
 
 ## Adding a New Service/Repository
 
-1. Define a protocol in CStudioKit (e.g., `FooRepositoryProtocol`)
+1. Define a protocol in BareKit (e.g., `FooRepositoryProtocol`)
 2. Implement the concrete type (e.g., `FooRepository`)
 3. Add to `Dependencies` if app-wide
 4. Wire in `LiveDependencies` initializer

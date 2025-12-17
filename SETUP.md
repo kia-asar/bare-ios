@@ -1,6 +1,6 @@
-# cstudio Setup Guide
+# bare Setup Guide
 
-This guide walks you through setting up the cstudio iOS app with Supabase integration.
+This guide walks you through setting up the bare iOS app with Supabase integration.
 
 ## Prerequisites
 
@@ -50,7 +50,7 @@ Create a storage bucket for thumbnails:
 ### 1.4 Configure Redirects
 
 In Supabase Dashboard → Authentication → URL Configuration:
-- Add `cstudio://auth-callback` to Redirect URLs
+- Add `bareapp://auth-callback` to Redirect URLs
 
 ## 2. iOS App Configuration
 
@@ -58,7 +58,7 @@ In Supabase Dashboard → Authentication → URL Configuration:
 
 1. Copy the template:
    ```bash
-   cp cstudio/cstudio/Resources/Secrets.plist.template cstudio/cstudio/Resources/Secrets.plist
+   cp bare/bare/Resources/Secrets.plist.template bare/bare/Resources/Secrets.plist
    ```
 
 2. Edit `Secrets.plist` with your Supabase credentials:
@@ -77,34 +77,34 @@ In Supabase Dashboard → Authentication → URL Configuration:
 
 3. **Important**: `Secrets.plist` is git-ignored. Never commit it.
 
-### 2.2 Add CStudioKit to Xcode Project
+### 2.2 Add BareKit to Xcode Project
 
-1. Open `cstudio.xcodeproj` in Xcode
-2. Select the `cstudio` target
+1. Open `bare.xcodeproj` in Xcode
+2. Select the `bare` target
 3. Go to "Frameworks, Libraries, and Embedded Content"
 4. Click "+" → "Add Package Dependency"
-5. Choose "Add Local..." and select the `CStudioKit` folder
-6. Add `CStudioKit` to both `cstudio` and `ShareExtension` targets
+5. Choose "Add Local..." and select the `BareKit` folder
+6. Add `BareKit` to both `bare` and `ShareExtension` targets
 
 ### 2.3 Configure Entitlements
 
-#### Main App Target (`cstudio`)
+#### Main App Target (`bare`)
 
-1. Select the `cstudio` target → Signing & Capabilities
+1. Select the `bare` target → Signing & Capabilities
 2. Add the following capabilities:
 
 **Keychain Sharing**
-- Add group: `$(AppIdentifierPrefix)social.curo.cstudio.sharedkeychain` (must be the FIRST entry in both app and extension)
+- Add group: `$(AppIdentifierPrefix)co.bareapp.bare.sharedkeychain` (must be the FIRST entry in both app and extension)
 
 **App Groups**
-- Add group: `group.social.curo.cstudio`
+- Add group: `group.co.bareapp.bare`
 
 **Associated Domains** (for deep linking)
 - Add: `applinks:your-domain.com` (if applicable)
 
 3. Under Info tab, add URL Types:
-   - Identifier: `com.kialabs.cstudio`
-   - URL Schemes: `cstudio`
+   - Identifier: `co.bareapp.bare`
+   - URL Schemes: `bareapp`
    - Role: Editor
 
 #### Share Extension Target (`ShareExtension`)
@@ -113,19 +113,19 @@ In Supabase Dashboard → Authentication → URL Configuration:
 2. Add the same capabilities:
 
 **Keychain Sharing**
-- Add group: `$(AppIdentifierPrefix)social.curo.cstudio.sharedkeychain` (must be the FIRST entry to match the app)
+- Add group: `$(AppIdentifierPrefix)co.bareapp.bare.sharedkeychain` (must be the FIRST entry to match the app)
 
 Note: The app uses KeychainAccess without hardcoding an access group. iOS uses the first keychain access group from entitlements; matching the first entry across targets enables session sharing.
 
 **App Groups**
-- Add group: `group.social.curo.cstudio`
+- Add group: `group.co.bareapp.bare`
 
 ### 2.4 Update Team and Bundle IDs
 
 1. Select each target and update:
    - Team: Your Apple Developer Team
-   - Bundle Identifier: `com.kialabs.cstudio` (main app)
-   - Bundle Identifier: `com.kialabs.cstudio.ShareExtension` (extension)
+   - Bundle Identifier: `co.bareapp.bare` (main app)
+   - Bundle Identifier: `co.bareapp.bare.ShareExtension` (extension)
 
 ## 3. Testing
 
@@ -141,7 +141,7 @@ Note: The app uses KeychainAccess without hardcoding an access group. iOS uses t
 
 1. Open Safari or any app
 2. Share a URL
-3. Select "cstudio" from the share sheet
+3. Select "bare" from the share sheet
 4. Add optional instructions
 5. Tap "Save"
 6. Open the main app and verify the post appears
@@ -218,8 +218,8 @@ Create an n8n workflow with these nodes:
 - Check that the App Identifier Prefix is correct
 
 ### Deep link not working
-- Verify URL scheme `cstudio` is configured
-- Check that redirect URL `cstudio://auth-callback` is in Supabase
+- Verify URL scheme `bareapp` is configured
+- Check that redirect URL `bareapp://auth-callback` is in Supabase
 - Ensure you're testing on a physical device or properly configured simulator
 
 ### Posts not appearing
@@ -247,13 +247,13 @@ Create an n8n workflow with these nodes:
 ### 5.1 Firebase Configuration
 
 1. Create Firebase projects for each environment:
-   - Development: `cstudio-dev`
-   - Production: `cstudio-prod`
+   - Development: `bare-dev`
+   - Production: `bare-prod`
 
 2. Download `GoogleService-Info.plist` for each project
 3. Place them in:
-   - `cstudio/cstudio/Config/Firebase/Debug/GoogleService-Info.plist`
-   - `cstudio/cstudio/Config/Firebase/Release/GoogleService-Info.plist`
+   - `bare/bare/Config/Firebase/Debug/GoogleService-Info.plist`
+   - `bare/bare/Config/Firebase/Release/GoogleService-Info.plist`
 
 4. Enable services in Firebase Console:
    - Analytics (without Ad ID)
@@ -270,7 +270,7 @@ Create an n8n workflow with these nodes:
 ### 5.3 Create Secrets.plist for Observability
 
 ```bash
-cp cstudio/cstudio/Config/Secrets.plist.template cstudio/cstudio/Config/Secrets.plist
+cp bare/bare/Config/Secrets.plist.template bare/bare/Config/Secrets.plist
 ```
 
 Edit with your credentials:
@@ -289,7 +289,7 @@ Edit with your credentials:
 
 ### 5.5 Add Build Run Scripts
 
-In Xcode, cstudio app target → Build Phases → + New Run Script Phase:
+In Xcode, bare app target → Build Phases → + New Run Script Phase:
 
 **Crashlytics** (after Compile Sources):
 ```bash

@@ -60,7 +60,7 @@
 
 ## iOS Architecture
 
-### CStudioKit Shared Package (2025-01-07)
+### BareKit Shared Package (2025-01-07)
 **Decision**: Create local Swift package for code shared between app and extension  
 **Context**: Extensions cannot link to app target code  
 **Consequences**: (+) Clean separation, reusable; (−) Extra package management
@@ -80,7 +80,7 @@
 **Context**: Need production-grade analytics, feature flags, crash reporting, and performance monitoring with extension support
 **Consequences**:
 - (+) Industry-standard stack, proven reliability, rich insights
-- (+) Protocol-driven architecture in CStudioKit enables testing and flexibility
+- (+) Protocol-driven architecture in BareKit enables testing and flexibility
 - (+) Extension observability via App Group buffering with no Firebase SDK linkage
 - (+) Remote Config enables rapid feature rollout without app updates
 - (+) Privacy-first: no IDFA, no ATT prompt, privacy manifests enforced by CI

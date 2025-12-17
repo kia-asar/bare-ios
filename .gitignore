@@ -70,7 +70,7 @@ fastlane/test_output
 
 # Secrets and Environment Configuration
 # .xcconfig files contain credentials and should never be committed
-cstudio/Dev.xcconfig
-cstudio/Prod.xcconfig
-cstudio/cstudio/Config/Firebase/GoogleService-Info-Dev.plist
-cstudio/cstudio/Config/Firebase/GoogleService-Info-Prod.plist
+bare/Dev.xcconfig
+bare/Prod.xcconfig
+bare/bare/Config/Firebase/GoogleService-Info-Dev.plist
+bare/bare/Config/Firebase/GoogleService-Info-Prod.plist

@@ -27,11 +27,11 @@ This project follows **strict directory conventions**. Before adding ANY new fil
 
 ## Module Structure
 
-### CStudioKit (Shared Package)
+### BareKit (Shared Package)
 Protocol-driven shared module used by main app, Share Extension, Widgets, and Siri Extensions:
 
 ```
-CStudioKit/
+BareKit/
 ├── Config/                   # AppConfig (constants), AppConstants, SupabaseConfig
 ├── Core/
 │   ├── Dependencies/         # Dependencies (actor DI), SupabaseClientProvider
@@ -47,11 +47,11 @@ CStudioKit/
 └── AI/                       # AIChatService (placeholder for future)
 ```
 
-### Main App (`cstudio`)
+### Main App (`bare`)
 
 ```
-cstudio/
-├── Core/                         # App lifecycle (cstudioApp.swift, AppDelegate), DI initialization
+bare/
+├── Core/                         # App lifecycle (bareApp.swift, AppDelegate), DI initialization
 ├── Config/                       # ObservabilityConfig, GoogleService-Info.plist, RemoteConfigDefaults
 ├── Configuration/                # ImageConfiguration (Nuke setup)
 ├── Services/
@@ -70,7 +70,7 @@ cstudio/
 ShareExtension/
 ├── Models/              # LinkPreview
 ├── Services/            # LinkPreviewService (HTML parsing)
-└── UI/                  # ShareView (integrated with CStudioKit + observability)
+└── UI/                  # ShareView (integrated with BareKit + observability)
                          # Uses AppLogger + AppGroupEventBuffer (no Firebase SDKs)
 ```
 
@@ -156,7 +156,7 @@ Unified observability stack combining Firebase (Analytics, Remote Config, Crashl
 ### Key Design Decisions
 
 1. **SDKs in app only**: Firebase SDKs (Analytics, Crashlytics, etc.) are not extension-safe and only linked in the app target
-2. **Protocol-driven**: All services implement protocols (`AnalyticsService`, `FeatureFlagService`, etc.) defined in CStudioKit for testability
+2. **Protocol-driven**: All services implement protocols (`AnalyticsService`, `FeatureFlagService`, etc.) defined in BareKit for testability
 3. **Extension buffering**: Share Extension buffers events to App Group, relayed by app on next launch with UUID deduplication
 4. **Remote Config mirroring**: App fetches Remote Config and mirrors active flags to App Group UserDefaults for extension access
 5. **No-IDFA policy**: Strict enforcement via privacy manifests and CI checks—no advertiser identifiers or ATT prompts
@@ -178,7 +178,7 @@ Protocol-based push notification system using OneSignal with permission pre-prom
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│ CStudioKit (Protocol Layer)                                 │
+│ BareKit (Protocol Layer)                                 │
 │                                                             │
 │  PushNotificationService ─────┐                            │
 │  ├─ initialize(appId)          │                            │
@@ -212,7 +212,7 @@ Protocol-based push notification system using OneSignal with permission pre-prom
 
 ### Key Design Decisions
 
-1. **Protocol-based**: Service interface defined in CStudioKit for testability and flexibility
+1. **Protocol-based**: Service interface defined in BareKit for testability and flexibility
 2. **Actor isolation**: Swift 6 actor pattern for thread-safe state management, bridging OneSignal's callback API
 3. **Pre-prompt UX**: Custom UI shown before system dialog to educate users and improve conversion
 4. **Permission observers**: Track all permission state changes including Settings revocations
@@ -341,27 +341,27 @@ private final class PermissionObserver: NSObject, OSNotificationPermissionObserv
 
 ## Navigation Architecture
 
-**Type-Safe Routing**: All navigation uses `AppRoute` enum (defined in CStudioKit) for compile-time safety and cross-target compatibility.
+**Type-Safe Routing**: All navigation uses `AppRoute` enum (defined in BareKit) for compile-time safety and cross-target compatibility.
 
 **Navigator Pattern**: Centralized navigation state management via `Navigator` class.
 
 ### Core Components
 
-**AppRoute** (`cstudio/Navigation/AppRoute.swift`)
+**AppRoute** (`bare/Navigation/AppRoute.swift`)
 - Enum defining all possible navigation destinations
 - Lives in main app target (references ContentItem and other UI models)
-- Supports deep linking via custom URL scheme (`cstudio://`) and universal links
+- Supports deep linking via custom URL scheme (`bareapp://`) and universal links
 - Methods: `from(url:)`, `toURL()`, `toUniversalLink()`
 
-**Navigator** (`CStudioKit/Navigation/Navigator.swift`)
+**Navigator** (`BareKit/Navigation/Navigator.swift`)
 - `@Observable` class managing NavigationPath
 - Methods: `navigate(to:)`, `pop()`, `popToRoot()`, `handleDeepLink(_:)`, `replace(with:)`
 - Shared across all app targets for consistent navigation behavior
 
-**View+Navigation** (`cstudio/Extensions/View+Navigation.swift`)
+**View+Navigation** (`bare/Extensions/View+Navigation.swift`)
 - SwiftUI extension providing `.withAppRouteDestinations()` modifier
 - Maps AppRoute cases to actual SwiftUI views
-- Lives in main app (not CStudioKit) since it references app-specific views
+- Lives in main app (not BareKit) since it references app-specific views
 
 ### Usage Pattern
 
@@ -385,8 +385,8 @@ struct ContentGridView: View {
 ### Deep Linking
 
 **Supported Sources:**
-- Custom URL scheme: `cstudio://post/{uuid}`
-- Universal links: `https://cstudio.app/post/{uuid}`
+- Custom URL scheme: `bareapp://post/{uuid}`
+- Universal links: `https://bare.app/post/{uuid}`
 - Widget tap actions
 - Push notifications
 - Email links
@@ -430,7 +430,7 @@ ScrollView {
 ### Future Extensions
 
 When adding new routes:
-1. Add case to `AppRoute` enum in CStudioKit
+1. Add case to `AppRoute` enum in BareKit
 2. Add URL parsing logic in `AppRoute.from(url:)` and `toURL()`
 3. Add view mapping in `View+Navigation.swift` extension
 
@@ -534,12 +534,12 @@ final class MyViewModel: ObservableObject {
 
 ## Design System & Centralization
 
-**DesignTokens (CStudioKit/UI/DesignTokens.swift)**
+**DesignTokens (BareKit/UI/DesignTokens.swift)**
 
 All UI values must use centralized design tokens to ensure consistency across all targets (main app, Share Extension, widgets, notifications, etc.):
 
 ```swift
-import CStudioKit
+import BareKit
 
 // Use tokens for all UI values
 .padding(DesignTokens.Spacing.md)
@@ -552,7 +552,7 @@ import CStudioKit
 - `DesignTokens.Spacing.*` - Standardized spacing values (xs/sm/md/lg/xl/xxl/xxxl)
 - `DesignTokens.CornerRadius.*` - Consistent corner radius values
 
-**Why in CStudioKit?**
+**Why in BareKit?**
 - Accessible to all app targets (main, extensions, widgets)
 - Single source of truth for design updates
 - Prevents UI fragmentation across targets

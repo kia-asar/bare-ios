@@ -4,17 +4,17 @@
 
 set -e
 
-echo "🔧 CStudio Configuration Setup"
+echo "🔧 Bare Configuration Setup"
 echo "================================"
 echo ""
 
 # Check if we're in the right directory
-if [ ! -f "cstudio/Dev.xcconfig.template" ]; then
+if [ ! -f "bare/Dev.xcconfig.template" ]; then
     echo "❌ Error: Run this script from the project root directory"
     exit 1
 fi
 
-cd cstudio
+cd bare
 
 # Check if config files already exist
 if [ -f "Dev.xcconfig" ] || [ -f "Prod.xcconfig" ]; then
@@ -43,17 +43,17 @@ echo "✅ Configuration files created!"
 echo ""
 echo "📋 Next steps:"
 echo ""
-echo "1. Edit cstudio/Dev.xcconfig and add your credentials:"
+echo "1. Edit bare/Dev.xcconfig and add your credentials:"
 echo "   - POSTHOG_API_KEY"
 echo "   - SUPABASE_URL"
 echo "   - SUPABASE_ANON_KEY"
 echo ""
-echo "2. Edit cstudio/Prod.xcconfig with production credentials"
+echo "2. Edit bare/Prod.xcconfig with production credentials"
 echo ""
 echo "3. (Optional) Add Firebase configuration files:"
-echo "   - cstudio/cstudio/Config/Firebase/GoogleService-Info-Dev.plist"
-echo "   - cstudio/cstudio/Config/Firebase/GoogleService-Info-Prod.plist"
+echo "   - bare/bare/Config/Firebase/GoogleService-Info-Dev.plist"
+echo "   - bare/bare/Config/Firebase/GoogleService-Info-Prod.plist"
 echo ""
-echo "4. Build the project with 'cstudio dev' or 'cstudio prod' scheme"
+echo "4. Build the project with 'bare dev' or 'bare prod' scheme"
 echo ""
 echo "For detailed instructions, see: CONFIGURATION_SETUP.md"

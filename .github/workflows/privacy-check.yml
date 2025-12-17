@@ -19,15 +19,15 @@ jobs:
         run: |
           echo "Cleaning build artifacts..."
           rm -rf ~/Library/Developer/Xcode/DerivedData/*
-          find cstudio/ -name "*.xcodeproj" -exec rm -rf {}/project.xcworkspace/xcuserdata \;
-          find cstudio/ -type d -name "build" -exec rm -rf {} + 2>/dev/null || true
+          find bare/ -name "*.xcodeproj" -exec rm -rf {}/project.xcworkspace/xcuserdata \;
+          find bare/ -type d -name "build" -exec rm -rf {} + 2>/dev/null || true
           echo "✅ Build artifacts cleaned"
 
       - name: Check for AdSupport.framework linkage
         run: |
           echo "Checking for AdSupport.framework references..."
-          if grep -r "AdSupport" cstudio/cstudio.xcodeproj/ || \
-             grep -r "AdSupport" cstudio/; then
+          if grep -r "AdSupport" bare/bare.xcodeproj/ || \
+             grep -r "AdSupport" bare/; then
             echo "❌ ERROR: AdSupport.framework found in project"
             echo "This violates our no-IDFA policy"
             exit 1
@@ -37,8 +37,8 @@ jobs:
       - name: Check for AppTrackingTransparency.framework linkage
         run: |
           echo "Checking for AppTrackingTransparency.framework references..."
-          if grep -r "AppTrackingTransparency" cstudio/cstudio.xcodeproj/ || \
-             grep -r "AppTrackingTransparency" cstudio/; then
+          if grep -r "AppTrackingTransparency" bare/bare.xcodeproj/ || \
+             grep -r "AppTrackingTransparency" bare/; then
             echo "❌ ERROR: AppTrackingTransparency.framework found in project"
             echo "This violates our no-ATT policy"
             exit 1
@@ -50,7 +50,7 @@ jobs:
           echo "Checking for NSUserTrackingUsageDescription in Info.plist..."
           # Only check source Info.plist files, exclude build artifacts and DerivedData
           FOUND=0
-          for file in $(find cstudio/ -name "Info.plist" -not -path "*/build/*" -not -path "*/DerivedData/*" -not -path "*/.build/*"); do
+          for file in $(find bare/ -name "Info.plist" -not -path "*/build/*" -not -path "*/DerivedData/*" -not -path "*/.build/*"); do
             echo "Checking $file..."
             if grep -q "NSUserTrackingUsageDescription" "$file"; then
               echo "❌ ERROR: NSUserTrackingUsageDescription found in $file"
@@ -66,12 +66,12 @@ jobs:
       - name: Check for IDFA access in code
         run: |
           echo "Checking for IDFA access in Swift code..."
-          if grep -r "identifierForAdvertising" cstudio/ --include="*.swift"; then
+          if grep -r "identifierForAdvertising" bare/ --include="*.swift"; then
             echo "❌ ERROR: identifierForAdvertising usage found in code"
             echo "This accesses IDFA, violating our policy"
             exit 1
           fi
-          if grep -r "ASIdentifierManager" cstudio/ --include="*.swift"; then
+          if grep -r "ASIdentifierManager" bare/ --include="*.swift"; then
             echo "❌ ERROR: ASIdentifierManager usage found in code"
             echo "This accesses IDFA, violating our policy"
             exit 1
@@ -81,7 +81,7 @@ jobs:
       - name: Verify Privacy Manifest NSPrivacyTracking is false
         run: |
           echo "Checking Privacy Manifest settings..."
-          for file in $(find cstudio/ CStudioKit/ -name "PrivacyInfo.xcprivacy"); do
+          for file in $(find bare/ BareKit/ -name "PrivacyInfo.xcprivacy"); do
             echo "Checking $file..."
             if ! grep -q "<key>NSPrivacyTracking</key>" "$file"; then
               echo "❌ ERROR: NSPrivacyTracking key missing in $file"
@@ -101,7 +101,7 @@ jobs:
           # Firebase v10+ uses GOOGLE_ANALYTICS_IDFA_COLLECTION_ENABLED flag
           # This is what Apple actually checks, not the framework name
           FOUND_SETTING=0
-          for file in $(find cstudio/ -name "Info.plist" -not -path "*/build/*" -not -path "*/DerivedData/*"); do
+          for file in $(find bare/ -name "Info.plist" -not -path "*/build/*" -not -path "*/DerivedData/*"); do
             if grep -q "GOOGLE_ANALYTICS_IDFA_COLLECTION_ENABLED" "$file"; then
               echo "Found GOOGLE_ANALYTICS_IDFA_COLLECTION_ENABLED in $file"
               # Check if it's set to false
