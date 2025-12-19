@@ -34,6 +34,15 @@ public enum DesignTokens {
         /// Shadows
         public static let shadowLight = Color.black.opacity(0.15)
         public static let shadowBlue = Color.blue.opacity(0.3)
+        
+        /// Todo/Checklist colors
+        public static let checkboxUnchecked = Color.gray.opacity(0.4)
+        public static let checkboxChecked = Color.orange
+        public static let textPrimary = Color.primary
+        public static let textSecondary = Color.secondary
+        public static let textStrikethrough = Color.gray.opacity(0.5)
+        public static let listBackground = Color(UIColor.systemBackground)
+        public static let listRowBackground = Color(UIColor.secondarySystemBackground)
     }
 
     // MARK: - Spacing
